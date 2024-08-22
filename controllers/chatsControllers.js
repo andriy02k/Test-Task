@@ -49,41 +49,28 @@ export const deleteChat = async (req, res, next) => {
   }
 };
 
-// export const sendMessage = async (req, res, next) => {
-//   res.send({ maessage: ok });
-// };
 export const sendMessage = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { sender, text } = req.body;
-
+    const { text, sender } = req.body;
     const chat = await Chat.findById(id);
-    if (!chat) {
-      return res.status(404).json({ message: "Chat not found" });
-    }
-
-    const newMessage = { sender, text, createdAt: new Date() };
+    const newMessage = { text, sender };
     chat.messages.push(newMessage);
-    await chat.save();
 
-    // Відправка повідомлення користувачу
-    res.status(201).json(newMessage);
-
-    // Отримання випадкової цитати з Quotable
-    const response = await axios.get("https://api.quotable.io/random");
-    const quote = response.data.content;
-
-    // Додаємо автоматичну відповідь у чат
-    const autoResponse = {
-      sender: "AutoResponder",
-      text: quote,
-      createdAt: new Date(),
-    };
-    chat.messages.push(autoResponse);
-    await chat.save();
-
-    // Відправка автоматичної відповіді клієнтам
-    io.emit("message", autoResponse);
+    setTimeout(async () => {
+      try {
+        const quoteResponse = await axios.get("https://favqs.com/api/qotd");
+        const quoteMessage = {
+          text: quoteResponse.data.quote.body,
+          sender: "Auto-response",
+        };
+        chat.messages.push(quoteMessage);
+        await chat.save();
+        res.json(chat);
+      } catch (error) {
+        next(error);
+      }
+    }, 3000);
   } catch (error) {
     next(error);
   }
