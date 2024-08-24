@@ -11,6 +11,17 @@ export const getChats = async (req, res, next) => {
   }
 };
 
+export const getChatById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const currentChat = await Chat.findById(id);
+
+    res.status(200).json(currentChat);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const createChat = async (req, res, next) => {
   try {
     const { firstName, lastName } = req.body;
@@ -53,9 +64,13 @@ export const sendMessage = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { text, sender } = req.body;
+
     const chat = await Chat.findById(id);
     const newMessage = { text, sender };
     chat.messages.push(newMessage);
+    await chat.save();
+
+    res.json(chat);
 
     setTimeout(async () => {
       try {
@@ -64,9 +79,9 @@ export const sendMessage = async (req, res, next) => {
           text: quoteResponse.data.quote.body,
           sender: "Auto-response",
         };
+
         chat.messages.push(quoteMessage);
         await chat.save();
-        res.json(chat);
       } catch (error) {
         next(error);
       }

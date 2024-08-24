@@ -5,11 +5,14 @@ import {
   updateChat,
   deleteChat,
   sendMessage,
+  getChatById,
 } from "../controllers/chatsControllers.js";
 
 const chatsRouter = express.Router();
 
 chatsRouter.get("/", getChats);
+
+chatsRouter.get("/:id", getChatById);
 
 chatsRouter.post("/", createChat);
 
